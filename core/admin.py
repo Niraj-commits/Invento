@@ -6,21 +6,16 @@ from .models import *
 
 class UserAdmin(UserAdmin):
     fieldsets = (
-        (None, {"fields": ("username", "password")}),
-        (("Personal info"), {"fields": ("first_name", "last_name", "phone_number",'address')}),
+        (None, {"fields": ("username", "password","address")}),
+    )
+    add_fieldsets = (
         (
-            ("Permissions"),
+            None,
             {
-                "fields": (
-                    "is_active",
-                    "is_staff",
-                    "is_superuser",
-                    "groups",
-                    "user_permissions",
-                ),
+                "classes": ("wide",),
+                "fields": ("username","password", "address"),
             },
         ),
-        (("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
     list_display = ["username","is_staff"]
 admin.site.register(User,UserAdmin)
