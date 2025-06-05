@@ -4,14 +4,14 @@ from rest_framework import serializers
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ['id','name']
         model = Category
+        fields = ['id','name']
 
 class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ['id','name','description','cost_price','selling_price','category']
         model = Product
+        fields = ['id','name','description','cost_price','selling_price','category']
     
 class PaymentSerializer(serializers.ModelSerializer):
 
@@ -19,9 +19,19 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = ['id','methods']
         model = Payment
 
-class POSSerializer(serializers.ModelSerializer):
+class SalesItemSerializer(serializers.ModelSerializer):
+
     class Meta:
-        fields = ['id','product','payment']
+        fields = ['id','product','sales_id','quantity']
+        model = POS_Item
+
+class POSSerializer(serializers.ModelSerializer):
+
+    payment = PaymentSerializer()
+    items = SalesItemSerializer()
+
+    class Meta:
+        fields = ['id','items','payment']
         model = POS
 
 class GRNSerializer(serializers.ModelSerializer):
