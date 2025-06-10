@@ -1,0 +1,39 @@
+User
+role - customer,admin,supplier
+company
+phone
+
+Category
+name
+
+Product
+name
+category - fk
+desc - not required
+quantity
+cost_price
+price
+available
+
+payment
+method
+
+POS - Point of sale
+product - fk
+payment - fk
+
+GRN - Good Received Note
+product - fk
+payment - fk
+
+purchase Order
+user -fk
+status
+
+purchase order item
+product - fk
+purchase order -fk
+quantity
+unit-price
+
+
