@@ -2,7 +2,14 @@
 from django_filters import rest_framework as filter
 from .models import *
 
-class CustomFilter(filter.FilterSet):
+class ProductFilter(filter.FilterSet):
+    class Meta:
+        model = Product
+        fields = {
+            'name':['exact'],
+        }
+
+class SalesFilter(filter.FilterSet):
     class Meta:
         model = Product
         fields = {
