@@ -11,7 +11,14 @@ class ProductFilter(filter.FilterSet):
 
 class SalesFilter(filter.FilterSet):
     class Meta:
-        model = Product
+        model = POS
+        fields = {
+            'name':['exact'],
+        }
+
+class PurchaseFilter(filter.FilterSet):
+    class Meta:
+        model = Purchase_order
         fields = {
             'name':['exact'],
         }
