@@ -22,3 +22,10 @@ class PurchaseFilter(filter.FilterSet):
         fields = {
             'name':['exact'],
         }
+
+class GRNFilter(filter.FilterSet):
+    class Meta:
+        model = GRN
+        fields = {
+            'name':['exact'],
+        }
