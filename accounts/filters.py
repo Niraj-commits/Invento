@@ -29,3 +29,10 @@ class GRNFilter(filter.FilterSet):
         fields = {
             'name':['exact'],
         }
+
+class CategoryFilter(filter.FilterSet):
+    class Meta:
+        model = Category
+        fields = {
+            'name':['exact'],
+        }
