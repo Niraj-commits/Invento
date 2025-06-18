@@ -13,7 +13,7 @@ class SalesFilter(filter.FilterSet):
     class Meta:
         model = POS
         fields = {
-            'name':['exact'],
+            'customer':['exact'],
         }
 
 class PurchaseFilter(filter.FilterSet):
