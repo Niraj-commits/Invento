@@ -20,7 +20,7 @@ class PurchaseFilter(filter.FilterSet):
     class Meta:
         model = Purchase_order
         fields = {
-            'name':['exact'],
+            'supplier':['exact'],
         }
 
 class GRNFilter(filter.FilterSet):
