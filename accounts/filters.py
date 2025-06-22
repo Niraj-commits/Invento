@@ -27,7 +27,7 @@ class GRNFilter(filter.FilterSet):
     class Meta:
         model = GRN
         fields = {
-            'name':['exact'],
+            'product':['exact'],
         }
 
 class CategoryFilter(filter.FilterSet):
