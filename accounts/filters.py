@@ -7,6 +7,7 @@ class ProductFilter(filter.FilterSet):
         model = Product
         fields = {
             'name':['exact'],
+            'category':['exact'],
         }
 
 class SalesFilter(filter.FilterSet):
