@@ -19,11 +19,13 @@ from .permission import *
     }
 )])
 class ClientView(viewsets.ModelViewSet):
-    queryset = Client.objects.all()
     serializer_class = ClientSerializer
-    permission_classes = [ViewPermission]
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = ClientFilter
+    permission_classes = [ViewPermission,IsOwner]
+
+    def get_queryset(self):
+        return Client.objects.filter(created_by = self.request.user)
 
 # Supplier
 @extend_schema(tags=['Supplier'],examples=[
@@ -37,11 +39,13 @@ class ClientView(viewsets.ModelViewSet):
     })
 ])
 class SupplierView(viewsets.ModelViewSet):
-    queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = SupplierFilter
-    permission_classes = [ViewPermission]
+    permission_classes = [ViewPermission,IsOwner]
+
+    def get_queryset(self):
+        return Supplier.objects.filter(created_by = self.request.user)
 
 # Stock-In Views
 @extend_schema(tags=['Category'],examples=[
@@ -52,11 +56,13 @@ class SupplierView(viewsets.ModelViewSet):
     })
 ])
 class CategoryView(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = CategoryFilter
-    permission_classes = [ViewPermission]
+    permission_classes = [ViewPermission,IsOwner]
+
+    def get_queryset(self):
+        return Category.objects.filter(created_by = self.request.user)
 
 @extend_schema(tags=['Product'],examples=[
     OpenApiExample(
@@ -70,12 +76,14 @@ class CategoryView(viewsets.ModelViewSet):
     })
 ])
 class ProductView(viewsets.ModelViewSet):
-    queryset = Product.objects.select_related('category')
     serializer_class = ProductSerializer
 
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = ProductFilter
-    permission_classes = [ViewPermission]
+    permission_classes = [ViewPermission,IsOwner]
+
+    def get_queryset(self):
+        return Product.objects.filter(created_by = self.request.user).select_related('category')
 
 @extend_schema(tags=['Stock-In'],examples=[
     OpenApiExample(
@@ -91,11 +99,13 @@ class ProductView(viewsets.ModelViewSet):
     })
 ])
 class StockInView(viewsets.ModelViewSet):
-    queryset = StockIn.objects.all()
     serializer_class = StockInSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = StockInFilter
-    permission_classes = [ViewPermission]
+    permission_classes = [ViewPermission,IsOwner]
+
+    def get_queryset(self):
+        return StockIn.objects.filter(created_by = self.request.user)
 
 @extend_schema(tags=['Stock-In Payments'],examples=[OpenApiExample(
     'Simple Stock-In Payment Example',
@@ -105,11 +115,13 @@ class StockInView(viewsets.ModelViewSet):
     }
 )])
 class StockInPaymentView(viewsets.ModelViewSet):
-    queryset = StockInPayment.objects.all()
     serializer_class = StockInPaymentSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = StockInPaymentFilter
-    permission_classes = [ViewPermission]
+    permission_classes = [ViewPermission,IsOwner]
+
+    def get_queryset(self):
+        return StockInPayment.objects.filter(created_by = self.request.user)
 
 # Stock-Out Views
 @extend_schema(tags=['Stock-Out'],examples=[
@@ -126,11 +138,13 @@ class StockInPaymentView(viewsets.ModelViewSet):
     })
 ])
 class StockOutView(viewsets.ModelViewSet):
-    queryset = StockOut.objects.select_related('client')
     serializer_class = StockOutSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = StockOutFilter
-    permission_classes = [ViewPermission]
+    permission_classes = [ViewPermission,IsOwner]
+
+    def get_queryset(self):
+        return StockOut.objects.filter(created_by = self.request.user)
 
 @extend_schema(tags=['Stock-Out Payments'],examples=[OpenApiExample(
     'Simple Stock-Out Payment Example',
@@ -140,12 +154,14 @@ class StockOutView(viewsets.ModelViewSet):
     }
 )])
 class StockOutPaymentView(viewsets.ModelViewSet):
-    queryset = StockOutPayment.objects.all()
     serializer_class = StockOutPaymentSerializer
     serializer_class = StockOutPaymentSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = StockOutPaymentFilter
-    permission_classes = [ViewPermission]
+    permission_classes = [ViewPermission,IsOwner]
+
+    def get_queryset(self):
+        return StockOutPayment.objects.filter(created_by = self.request.user)
 
 class DashboardView(viewsets.ViewSet):
     best_supplier = ""
@@ -154,11 +170,8 @@ class DashboardView(viewsets.ViewSet):
     best_seller = ""
 
     def list(self,request):
-        total_products = Product.objects.count()
-        items_bought = StockIn.objects.count()
-        items_sold = StockOut.objects.count()
-        suppliers = Supplier.objects.all()
-        clients = Client.objects.all()
+        suppliers = Supplier.objects.filter(created_by = self.request.user)
+        clients = Client.objects.filter(created_by = self.request.user)
 
         product_supplied_in = 0
 
@@ -170,8 +183,6 @@ class DashboardView(viewsets.ViewSet):
 
         data= {
             "total_products":total_products,
-            "total_stock_in":items_bought,
-            "total_stock_out":items_sold,
         }
         return Response(data)
 

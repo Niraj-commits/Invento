@@ -10,7 +10,6 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = ['id','name','address','email','phone','created_at','created_by']
         read_only_fields = ['created_at']
-        write_only_fields = ['created_by']
     
     def create(self, validated_data):
         # Gets Currently logged in user
