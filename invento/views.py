@@ -22,7 +22,7 @@ class ClientView(viewsets.ModelViewSet):
     serializer_class = ClientSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = ClientFilter
-    permission_classes = [ViewPermission,IsOwner]
+    permission_classes = [ViewPermission]
 
     def get_queryset(self):
         return Client.objects.filter(created_by = self.request.user)
@@ -42,7 +42,7 @@ class SupplierView(viewsets.ModelViewSet):
     serializer_class = SupplierSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = SupplierFilter
-    permission_classes = [ViewPermission,IsOwner]
+    permission_classes = [ViewPermission]
 
     def get_queryset(self):
         return Supplier.objects.filter(created_by = self.request.user)
@@ -59,7 +59,7 @@ class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = CategoryFilter
-    permission_classes = [ViewPermission,IsOwner]
+    permission_classes = [ViewPermission]
 
     def get_queryset(self):
         return Category.objects.filter(created_by = self.request.user)
@@ -80,7 +80,7 @@ class ProductView(viewsets.ModelViewSet):
 
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = ProductFilter
-    permission_classes = [ViewPermission,IsOwner]
+    permission_classes = [ViewPermission]
 
     def get_queryset(self):
         return Product.objects.filter(created_by = self.request.user).select_related('category')
@@ -102,7 +102,7 @@ class StockInView(viewsets.ModelViewSet):
     serializer_class = StockInSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = StockInFilter
-    permission_classes = [ViewPermission,IsOwner]
+    permission_classes = [ViewPermission]
 
     def get_queryset(self):
         return StockIn.objects.filter(created_by = self.request.user)
@@ -118,7 +118,7 @@ class StockInPaymentView(viewsets.ModelViewSet):
     serializer_class = StockInPaymentSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = StockInPaymentFilter
-    permission_classes = [ViewPermission,IsOwner]
+    permission_classes = [ViewPermission]
 
     def get_queryset(self):
         return StockInPayment.objects.filter(created_by = self.request.user)
@@ -128,8 +128,8 @@ class StockInPaymentView(viewsets.ModelViewSet):
     OpenApiExample(
     'Simple Stock-Out Example',
     value={
-        "customer_id":1,
-        "purchased_items":[
+        "client_id":1,
+        "items":[
         {
             "product_id":1,
             "quantity":5
@@ -141,9 +141,9 @@ class StockOutView(viewsets.ModelViewSet):
     serializer_class = StockOutSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = StockOutFilter
-    permission_classes = [ViewPermission,IsOwner]
+    permission_classes = [ViewPermission]
 
-    def get_queryset(self):
+    def get_queryset(self,request):
         return StockOut.objects.filter(created_by = self.request.user)
 
 @extend_schema(tags=['Stock-Out Payments'],examples=[OpenApiExample(
@@ -158,12 +158,13 @@ class StockOutPaymentView(viewsets.ModelViewSet):
     serializer_class = StockOutPaymentSerializer
     filter_backends = [filter.DjangoFilterBackend]
     filterset_class = StockOutPaymentFilter
-    permission_classes = [ViewPermission,IsOwner]
+    permission_classes = [ViewPermission]
 
     def get_queryset(self):
         return StockOutPayment.objects.filter(created_by = self.request.user)
 
 class DashboardView(viewsets.ViewSet):
+    permission_classes = [ViewPermission]
     best_supplier = ""
     best_client = ""
     total_revenue = 0
@@ -172,17 +173,47 @@ class DashboardView(viewsets.ViewSet):
     def list(self,request):
         suppliers = Supplier.objects.filter(created_by = self.request.user)
         clients = Client.objects.filter(created_by = self.request.user)
-
+        products = Product.objects.filter(created_by = self.request.user)
+        StockIns = StockIn.objects.filter(created_by = self.request.user)
+        StockOuts = StockOut.objects.filter(created_by = self.request.user)
+        product_count = products.count()
+        supplier_count = suppliers.count()
+        client_count = clients.count()
         product_supplied_in = 0
+        product_supplied_out = 0
+        Completed_stockIns = 0
+        Pending_stockIns = 0
+        Cancelled_stockIns = 0
+
+        for stock in StockIns:
+            if stock.status == "completed":
+                Completed_stockIns += 1 
+            
+            elif stock.status == "pending":
+                Pending_stockIns +=1
+            
+            elif stock.status == "cancelled":
+                Cancelled_stockIns += 1
 
         for supplier in suppliers:
-            total_products = 0
-            for order in supplier.orders.all():
-                for items in order.stock_in_items.all():
-                    total_products += items.quantity
+            for stock_in in supplier.stockin.all():
+                for item in stock_in.stock_in_items.all():
+                    product_supplied_in += item.quantity
 
+        for client in clients:
+            for stock_out in client.stockout.all():
+                for item in stock_out.stock_out_items.all():
+                    product_supplied_out += item.quantity
+                   
         data= {
-            "total_products":total_products,
+            "Total Products":product_count,
+            "Total Suppliers":supplier_count,
+            "Total Clients":client_count,
+            "Total StockOuts":product_supplied_out,
+            "Total StockIns":product_supplied_in,
+            "Pending StockIns": Pending_stockIns,
+            "Completed StockIns":Completed_stockIns,
+            "Cancelled StockIns":Cancelled_stockIns
         }
         return Response(data)
 

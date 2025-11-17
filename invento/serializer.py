@@ -8,7 +8,7 @@ from .email_task import *
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
-        fields = ['id','name','address','email','phone','created_at','created_by']
+        fields = ['id','name','address','email','phone','created_at']
         read_only_fields = ['created_at']
     
     def create(self, validated_data):

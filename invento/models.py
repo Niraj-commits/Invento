@@ -52,7 +52,7 @@ class Product(models.Model):
 
 class StockOut(models.Model):
     status_choice = (('pending','pending'),('completed','completed'),('cancelled','cancelled'),)
-    client = models.ForeignKey(Client,on_delete=models.PROTECT)
+    client = models.ForeignKey(Client,on_delete=models.PROTECT,related_name="stockout")
     status = models.CharField(max_length=25,choices=status_choice,default="pending")
     status = models.CharField(max_length=255,choices=status_choice,default="pending")
     created_at = models.DateField(auto_now_add=True)
@@ -89,9 +89,8 @@ class StockOutPayment(models.Model):
 
 class StockIn(models.Model):
     status_choices = (('pending','pending'),('completed','completed'),('cancelled','cancelled'),)
-    supplier = models.ForeignKey(Supplier,on_delete=models.PROTECT)
     status = models.CharField(max_length=25,choices=status_choices,default="pending")
-    supplier = models.ForeignKey(Supplier,on_delete=models.PROTECT,related_name="orders")
+    supplier = models.ForeignKey(Supplier,on_delete=models.PROTECT,related_name="stockin")
     status = models.CharField(max_length=255,choices=status_choices,default="pending")
     created_at = models.DateField(auto_now_add=True)
     created_by = models.ForeignKey(User,on_delete=models.PROTECT)
