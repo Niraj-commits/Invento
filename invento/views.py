@@ -6,6 +6,7 @@ from .pagination import *
 from .custom_filter import *
 from django_filters import rest_framework as filter
 from .permission import *
+from .utils.dashboard import *
 
 # Customer
 @extend_schema(tags=['Client'],examples=[
@@ -165,55 +166,8 @@ class StockOutPaymentView(viewsets.ModelViewSet):
 
 class DashboardView(viewsets.ViewSet):
     permission_classes = [ViewPermission]
-    best_supplier = ""
-    best_client = ""
-    total_revenue = 0
-    best_seller = ""
 
     def list(self,request):
-        suppliers = Supplier.objects.filter(created_by = self.request.user)
-        clients = Client.objects.filter(created_by = self.request.user)
-        products = Product.objects.filter(created_by = self.request.user)
-        StockIns = StockIn.objects.filter(created_by = self.request.user)
-        StockOuts = StockOut.objects.filter(created_by = self.request.user)
-        product_count = products.count()
-        supplier_count = suppliers.count()
-        client_count = clients.count()
-        product_supplied_in = 0
-        product_supplied_out = 0
-        Completed_stockIns = 0
-        Pending_stockIns = 0
-        Cancelled_stockIns = 0
-
-        for stock in StockIns:
-            if stock.status == "completed":
-                Completed_stockIns += 1 
-            
-            elif stock.status == "pending":
-                Pending_stockIns +=1
-            
-            elif stock.status == "cancelled":
-                Cancelled_stockIns += 1
-
-        for supplier in suppliers:
-            for stock_in in supplier.stockin.all():
-                for item in stock_in.stock_in_items.all():
-                    product_supplied_in += item.quantity
-
-        for client in clients:
-            for stock_out in client.stockout.all():
-                for item in stock_out.stock_out_items.all():
-                    product_supplied_out += item.quantity
-                   
-        data= {
-            "Total Products":product_count,
-            "Total Suppliers":supplier_count,
-            "Total Clients":client_count,
-            "Total StockOuts":product_supplied_out,
-            "Total StockIns":product_supplied_in,
-            "Pending StockIns": Pending_stockIns,
-            "Completed StockIns":Completed_stockIns,
-            "Cancelled StockIns":Cancelled_stockIns
-        }
+        data = create_dashboard(request.user)
         return Response(data)
 

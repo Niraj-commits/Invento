@@ -53,7 +53,6 @@ class Product(models.Model):
 class StockOut(models.Model):
     status_choice = (('pending','pending'),('completed','completed'),('cancelled','cancelled'),)
     client = models.ForeignKey(Client,on_delete=models.PROTECT,related_name="stockout")
-    status = models.CharField(max_length=25,choices=status_choice,default="pending")
     status = models.CharField(max_length=255,choices=status_choice,default="pending")
     created_at = models.DateField(auto_now_add=True)
     created_by = models.ForeignKey(User,on_delete=models.PROTECT)
@@ -82,14 +81,12 @@ class StockOutPayment(models.Model):
     )
     stock_out = models.OneToOneField(StockOut,on_delete=models.CASCADE,related_name='stock_out_payment')
     amount = models.PositiveIntegerField(default=0)
-    status = models.CharField(max_length=25,choices=PAYMENT_STATUS,default="pending")
     status = models.CharField(max_length=255,choices=PAYMENT_STATUS,default="pending")
     created_at = models.DateField(auto_now_add=True)
     created_by = models.ForeignKey(User,on_delete=models.PROTECT)
 
 class StockIn(models.Model):
     status_choices = (('pending','pending'),('completed','completed'),('cancelled','cancelled'),)
-    status = models.CharField(max_length=25,choices=status_choices,default="pending")
     supplier = models.ForeignKey(Supplier,on_delete=models.PROTECT,related_name="stockin")
     status = models.CharField(max_length=255,choices=status_choices,default="pending")
     created_at = models.DateField(auto_now_add=True)
@@ -119,7 +116,6 @@ class StockInPayment(models.Model):
     )
     stock_in = models.OneToOneField(StockIn,on_delete=models.CASCADE,related_name='stock_in_payment')
     amount = models.PositiveIntegerField(default=0)
-    status = models.CharField(max_length=25,choices=PAYMENT_STATUS,default="pending")
     status = models.CharField(max_length=255,choices=PAYMENT_STATUS,default="pending")
     created_at = models.DateField(auto_now_add=True)
     created_by = models.ForeignKey(User,on_delete=models.PROTECT)
