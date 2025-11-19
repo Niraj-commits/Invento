@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import *
 from rest_framework.response import Response
 from rest_framework import status
+from .notification import *
 
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -301,7 +302,7 @@ class StockOutSerializer(serializers.ModelSerializer):
             item.product.price * item.quantity
             for item in order.stock_out_items.all()
         )
-    
+
     def create(self, validated_data):
         # Gets Currently logged in user
         request = self.context.get('request')
@@ -310,43 +311,59 @@ class StockOutSerializer(serializers.ModelSerializer):
         item_list = validated_data.pop('stock_out_items')
         validated_data['created_by'] = user
         stock_out = StockOut.objects.create(**validated_data)
-
         for item in item_list:
             StockOutItem.objects.create(stock_out=stock_out,**item)
-
-        if stock_out.status == "completed":
-            for item in stock_out.stock_out_items.select_related('product'):
-                product = item.product
-
-                if product.quantity < item.quantity:
-                    raise serializers.ValidationError({"Error":"Item Quantity cannot exceed available products"})
-                
-                product.quantity -= item.quantity
-                product.save()
-        
         return stock_out
     
-    def update(self, instance, validated_data):
-        if instance.status == "completed":
-            raise serializers.ValidationError({"Error":"Cannot Edit a Completed stock_out record"})
-        
-        item_list = validated_data.pop('stock_out_items')
+def update(self, instance, validated_data):
+    if instance.status == "completed":
+        raise serializers.ValidationError(
+            {"Error": "Cannot Edit a Completed stock_out record"}
+        )
 
-        instance =  super().update(instance,validated_data)
+    # Extract new items
+    new_items = validated_data.pop('stock_out_items', None)
 
-        if item_list:
-            for item in item_list:
-                product = item.get['product']
-                quantity = item.get['quantity']
+    # STEP 1 — Revert old stock first
+    old_items = instance.stock_out_items.all()
+    for old in old_items:
+        product = old.product
+        product.quantity += old.quantity
+        product.save()
 
-                if product.quantity < item.quantity:
-                    raise serializers.ValidationError({"Error":"Item Quantity Cannot Exceed Available Product Quantity"})
-                
-                product.quantity -= quantity
-                product.save()
+    # Update the stock_out fields
+    instance = super().update(instance, validated_data)
 
-                stock_out_item = StockOutItem.objects.update_or_create(stock_out = instance,product = product,quantity=quantity)
-        return instance
+    # STEP 2 — Add new items & subtract stock
+    if new_items:
+        for item in new_items:
+            product = item.get("product")
+            quantity = item.get("quantity")
+
+            if product.quantity < quantity:
+                raise serializers.ValidationError(
+                    {"Error": "Item Quantity Cannot Exceed Available Product Quantity"}
+                )
+
+            # Deduct new stock
+            product.quantity -= quantity
+            product.save()
+
+            if product.quantity < 5:
+                low_stock(
+                    user=product.created_by,
+                    message=f"Stock for {product.name} is low ({product.quantity}). Please restock soon."
+                )
+
+            # Update or create item
+            StockOutItem.objects.update_or_create(
+                stock_out=instance,
+                product=product,
+                defaults={"quantity": quantity},
+            )
+
+    return instance
+
 
 class StockOutPaymentSerializer(serializers.ModelSerializer):
 
@@ -406,6 +423,20 @@ class StockOutPaymentSerializer(serializers.ModelSerializer):
             stock_out.status = "completed"
             stock_out.save()
 
+            for item in stock_out.stock_out_items.all().select_related('product'):
+                product = item.product
+                if product.quantity < item.quantity:
+                    raise serializers.ValidationError({"Error":"Insufficient stock"})
+                    
+                product.quantity -= item.quantity
+                product.save()
+
+                if product.quantity < 5:
+                    low_stock(
+                        user=user,
+                        message=f"{user} your stock -> {product.name} is running really low with only {product.quantity} units. Please Restock Soon"
+                    )
+
         else:
             payment.status = "pending"
         payment.save()
@@ -415,6 +446,8 @@ class StockOutPaymentSerializer(serializers.ModelSerializer):
         stock_out = instance.stock_out
         new_amount = validated_data.get('amount',0)
         total_amount = instance.amount + new_amount
+        request = self.context.get('request')
+        user = request.user
         
         duplicate = StockOutPayment.objects.filter(stock_out=stock_out).exclude(id=instance.id).exists()
 
@@ -440,9 +473,27 @@ class StockOutPaymentSerializer(serializers.ModelSerializer):
                 instance.status = "paid"
                 stock_out.status = "completed"
                 stock_out.save()
+                
+                for item in stock_out.stock_out_items.all().select_related('product'):
+                    product = item.product
+                    if product.quantity < item.quantity:
+                        raise serializers.ValidationError({"Error":"Insufficient stock"})
+                        
+                    product.quantity -= item.quantity
+                    product.save()
+                    if product.quantity < 5:
+                        low_stock(
+                            user=user,
+                            message=f"{user} your stock -> {product.name} is running really low with only {product.quantity} units. Please Restock Soon"
+                        )
             
             else:
                 raise serializers.ValidationError({"Error":"Unexpected Error Occured"})
         instance.amount = total_amount
         instance.save()
         return instance
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ['message']
+        model = Notifications

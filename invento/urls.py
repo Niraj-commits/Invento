@@ -19,6 +19,8 @@ router.register("payment/stock-out-payments",StockOutPaymentView,basename="stock
 router.register("payment/stock-in-payments",StockInPaymentView,basename="stockinpayment")
 
 router.register("dashboard",DashboardView,basename="dashboard")
+router.register("notifications",NotificationView,basename="notifications")
+
 
 urlpatterns = [
     path('',include(router.urls)),

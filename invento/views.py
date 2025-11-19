@@ -144,7 +144,7 @@ class StockOutView(viewsets.ModelViewSet):
     filterset_class = StockOutFilter
     permission_classes = [ViewPermission]
 
-    def get_queryset(self,request):
+    def get_queryset(self):
         return StockOut.objects.filter(created_by = self.request.user)
 
 @extend_schema(tags=['Stock-Out Payments'],examples=[OpenApiExample(
@@ -171,3 +171,9 @@ class DashboardView(viewsets.ViewSet):
         data = create_dashboard(request.user)
         return Response(data)
 
+class NotificationView(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [ViewPermission]
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        return Notifications.objects.filter(user = self.request.user)
