@@ -10,7 +10,6 @@ from .models import *
 from .serializer import *
 from .permission import *
 from drf_spectacular.utils import extend_schema,OpenApiExample
-from .email_task import send_welcome_email
 
 class Login(viewsets.ViewSet):
     @extend_schema(
@@ -70,7 +69,6 @@ class RegisterView(viewsets.ViewSet):
                 "username":user.username,
                 "email":user.email,
             },status=status.HTTP_201_CREATED)
-        send_welcome_email.delay(user.email,user.username)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 @extend_schema(tags=['View Users'])

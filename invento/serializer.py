@@ -2,8 +2,6 @@ from rest_framework import serializers
 from .models import *
 from rest_framework.response import Response
 from rest_framework import status
-from django.core.mail import send_mail
-from .email_task import *
 
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -407,7 +405,6 @@ class StockOutPaymentSerializer(serializers.ModelSerializer):
             payment.status = "paid"
             stock_out.status = "completed"
             stock_out.save()
-            Stock_Out_Completed.delay(stock_out.client.email,stock_out.client.name)
 
         else:
             payment.status = "pending"
