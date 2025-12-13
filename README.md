@@ -9,23 +9,20 @@ managing suppliers & customers, and includes a dashboard for analytics.
 - CRUD APIs for products, suppliers, customers  
 - Stock movement: inbound (stock‑in) and outbound (stock‑out) operations  
 - Dashboard analytics: insights about inventory, suppliers, customers  
-- Background mailing tasks powered by Celery  
 - Modular Django app structure (core, products, main_folder etc)  
 ---
 
 ## 🚀 Technology Stack  
 - Python  
 - Django / Django REST Framework  
-- Simple JWT for token‑based auth  
-- Celery + Redis for background tasks  
+- Simple JWT for token‑based auth   
 - PostgreSQL for persistent storage  
 ---
 
 ## 🔧 Getting Started  
 ### Prerequisites  
 - Python (e.g., 3.10+)  
-- MySQL (or configured database)  
-- Redis for Celery broker  
+- MySQL (or configured database)    
 - Git  
 
 ### Installation  
@@ -45,9 +42,7 @@ managing suppliers & customers, and includes a dashboard for analytics.
    pip install -r requirements.txt
    ```  
 4. Configure your `.env` / `settings.py`:  
-   - Set database credentials (PostgreSQL)   
-   - Configure Celery broker & backend (e.g., Redis)  
-   - Configure email settings (Mailtrap)  
+   - Set database credentials (PostgreSQL)    
 5. Run migrations:  
    ```bash
    python manage.py migrate
@@ -56,11 +51,7 @@ managing suppliers & customers, and includes a dashboard for analytics.
    ```bash
    python manage.py createsuperuser
    ```  
-7. Run Celery worker (in a separate terminal):  
-   ```bash
-   celery -A main_folder worker --l info
-   ```  
-8. Run the web server:  
+7. Run the web server:  
    ```bash
    python manage.py runserver
    ```  
@@ -71,7 +62,6 @@ managing suppliers & customers, and includes a dashboard for analytics.
 - Create suppliers and customers.  
 - Add products and manage stock‑in/out entries.  
 - Visit dashboard endpoints to view analytics (e.g., total stock, low stock alerts, supplier/customer stats).  
-- Email notifications are sent whenever certain events occur (e.g., stock falls below threshold) via Celery.
 
 ## 📄 License    
 No license – all rights reserved_
