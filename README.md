@@ -1,6 +1,6 @@
 # Invento  
 **Invento** is a backend inventory‑management system built with Django REST Framework (DRF).
-It uses JWT authentication, background tasks with Celery for mailing, and enables tracking stock in/out,
+It uses JWT authentication and enables tracking stock in/out,
 managing suppliers & customers, and includes a dashboard for analytics.
 ---
 
